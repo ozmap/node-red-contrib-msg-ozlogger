@@ -1,0 +1,201 @@
+<style>
+
+    /*Selected step in tracer*/
+    .msg-ozlogger-line-selected {
+        background-color: lightblue;
+    }
+
+    .msg-ozlogger-line {
+
+    }
+
+    .toggle-bp-button {
+
+    }
+</style>
+
+<script type="text/javascript">
+    $(() => {
+        let content = `
+             <div style="padding: 2em;">
+                <label for="logLevels">Log level:</label>
+                <select id="logLevels" name="logLevel">
+                    <option value="audit">audit</option>
+                    <option value="debug">debug</option>
+                    <option value="log">log</option>
+                    <option value="info">info</option>
+                    <option value="warn">warn</option>
+                    <option value="error">error</option>
+                    <option value="fatal">fatal</option>
+                </select>
+                <label for="whatLog">
+                O que será logado:<br/>
+                <i style="font-size:0.7em"><b>Payload e Extralogs:</b> "msg.ozExtraLogs" será logado</i>
+                </label>
+                <select id="whatLog" name="whatLog">
+                    <option value="msg">Mensagem</option>
+                    <option value="msg-reqres">Mensagem sem ReqRes</option>
+                    <option value="payload">Payload</option>
+                    <option value="payload+ozextralogs">Payload e OZExtraLogs</option>
+                    <option value="event-only">Nada, so evento</option>
+                </select>
+                <button class="toggle-bp-button" id="toggleBp">
+                    <i class="fa fa-stop-circle-o"></i>
+                    Desabilitar/Habilitar log neste nó
+                </button>
+                <div>
+                    <h4>Nós monitorados:</h4>
+                    <ul style="overflow:auto;" id="nodes-monitored-list"></ul>
+                </div>
+              </div>
+`;
+
+        RED.sidebar.addTab({
+            id: "msg-ozlogger",
+            label: 'OZLogger',
+            name: 'OZLogger',
+            iconClass: "fa fa-random",
+            content: content,
+            pinned: true,
+            enableOnEdit: true
+        });
+
+        let timeoutId = null;
+        const toggleBpButton = $('#toggleBp');
+        const bpList = $('#nodes-monitored-list');
+        let loggedNodes = {};
+
+        toggleBpButton.on('click', function () {
+            const selection = RED.view.selection();
+            for (let node of selection.nodes) {
+                if (!loggedNodes[node.id]) {
+                    loggedNodes[node.id] = {
+                        level: $('#logLevels').val(),
+                        whatLog: $('#whatLog').val(),
+                        name: node.name
+                    };
+                } else {
+                    delete loggedNodes[node.id];
+                }
+            }
+
+            $.ajax({
+                url: 'msg-ozlogger/lognode',
+                contentType: "application/json",
+                cache:false,
+                dataType: 'json',
+                data: JSON.stringify(loggedNodes),
+                type: 'PUT',
+                error: function () {
+                    alert(`Failed to change debug state`);
+                },
+                success: function () {
+                }
+            });
+
+        });
+
+        function updateloggedNodes() {
+            bpList.html('');
+            const allBreakPointMarkers = $(`g .tracer-breakpoint`);
+            allBreakPointMarkers.remove();
+            for (let settingsKey of Object.keys(loggedNodes)) {
+                let color = "grey";
+                switch (loggedNodes[settingsKey].level) {
+                    case "audit":
+                        color = "green";
+                        break;
+                    case "debug":
+                        color = "purple";
+                        break;
+                    case "fatal":
+                        color = "red";
+                        break;
+                    case "error":
+                        color = "red";
+                        break;
+                    case "info":
+                        color = "yellow";
+                        break;
+                    case "warn":
+                        color = "orange";
+                        break;
+                }
+
+                const markerEl = $(document.createElementNS('http://www.w3.org/2000/svg', 'circle'))
+                    .attr({
+                        class: 'tracer-breakpoint',
+                        fill: color,
+                        cx: 4,
+                        cy: -6,
+                        r: 3.5
+                    });
+                const nodeElement = $(`g#${settingsKey.replace('.', '\\.')}`);
+                markerEl.appendTo(nodeElement);
+
+                const item = $(`<div>
+                        <b>${loggedNodes[settingsKey].name}</b><br/>
+                        ${loggedNodes[settingsKey].level} - <i style="font-size:0.7em">${settingsKey}</i><br/>
+                        ${loggedNodes[settingsKey].whatLog}
+                    </div>`)
+                const itemWrapper = $(`
+                <li style="cursor: pointer; padding: 2px; border: 1px solid #eee; margin-top: 2px; position: relative;">
+
+                </li>`);
+                const bto = $(`<button style="position: absolute; top: 0px; right: 0px; color: red;" >X</button>`);
+                bto.click(function (bto) {
+                    let userResponse = confirm("Deseja realmente desativar o log deste Nó?");
+                    if (userResponse) {
+                        $.ajax({
+                            url: 'msg-ozlogger/removelog',
+                            contentType: "application/json",
+                            cache: false,
+                            dataType: 'json',
+                            data: JSON.stringify({nodeId: settingsKey}),
+                            type: 'POST',
+                            error: function () {
+                                alert(`Failed to change debug state`);
+                            },
+                            success: function () {
+                            }
+                        });
+                    }
+
+                })
+                item.click(function () {
+                    RED.view.reveal(settingsKey);
+                    RED.view.select(settingsKey);
+                });
+
+                itemWrapper.append(bto);
+                itemWrapper.append(item);
+                itemWrapper.appendTo(bpList);
+            }
+        }
+
+        function askForNodeReload(){
+            $.ajax({
+                url: 'msg-ozlogger/config',
+                contentType: "application/json",
+                cache:false,
+                type: 'GET',
+                error: function () {
+                },
+                success: function () {
+                }
+            });
+        }
+
+        RED.comms.subscribe("msg-ozlogger/lognode", function (topic, loggedNodesFromServer) {
+            loggedNodes = loggedNodesFromServer;
+            updateloggedNodes();
+        });
+        RED.events.on('workspace:change', function (e) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(askForNodeReload, 300);
+        });
+
+
+
+    })
+</script>

@@ -1,0 +1,33 @@
+{
+  "name": "node-red-contrib-msg-ozlogger",
+  "version": "0.0.1",
+  "node-red": {
+    "nodes": {
+      "msg-ozlogger": "msg-ozlogger.js"
+    }
+  },
+  "scripts": {
+    "start": "build "
+  },
+  "dependencies": {
+    "config": "^3.0.1",
+    "decache": "^4.5.1",
+    "fs-extra": "^7.0.1",
+    "json-stringify-safe": "^5.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ozmap/node-red-contrib-msg-ozlogger.git"
+  },
+  "keywords": [
+    "node-red",
+    "node",
+    "red",
+    "msg",
+    "logger",
+    "ozmap",
+    "oznlogger"
+  ],
+  "author": "Jose Raupp da Rosa Junior <jose.raupp@ozmap.com.br>",
+  "license": "Apache-2.0"
+}
