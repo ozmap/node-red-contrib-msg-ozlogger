@@ -4,7 +4,7 @@
   "description": "Basic implementations for a log helper on node-red",
   "node-red": {
     "nodes": {
-      "msg-ozlogger": "src/msg-ozlogger.js"
+      "msg-ozlogger": "msg-ozlogger.js"
     }
   },
   "scripts": {
