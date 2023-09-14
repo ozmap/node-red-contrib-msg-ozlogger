@@ -1,9 +1,10 @@
 {
   "name": "node-red-contrib-msg-ozlogger",
   "version": "0.0.1",
+  "description": "Basic implementations for a log helper on node-red",
   "node-red": {
     "nodes": {
-      "msg-ozlogger": "msg-ozlogger.js"
+      "msg-ozlogger": "src/msg-ozlogger.js"
     }
   },
   "scripts": {
@@ -29,5 +30,5 @@
     "oznlogger"
   ],
   "author": "Jose Raupp da Rosa Junior <jose.raupp@ozmap.com.br>",
-  "license": "Apache-2.0"
+  "license": "ISC"
 }
