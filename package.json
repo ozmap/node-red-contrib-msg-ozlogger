@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-msg-ozlogger",
+  "name": "@ozmap/node-red-contrib-msg-ozlogger",
   "version": "1.0.0",
   "description": "Basic implementations for a log helper on node-red",
   "node-red": {
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:ozmap/node-red-contrib-msg-ozlogger.git"
+    "url": "git+ssh://git@github.com/ozmap/node-red-contrib-msg-ozlogger.git"
   },
   "keywords": [
     "node-red",
@@ -30,5 +30,14 @@
     "oznlogger"
   ],
   "author": "Jose Raupp da Rosa Junior <jose.raupp@ozmap.com.br>",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ozmap/node-red-contrib-msg-ozlogger/issues"
+  },
+  "homepage": "https://github.com/ozmap/node-red-contrib-msg-ozlogger#readme",
+  "main": "msg-ozlogger.js",
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {}
 }
