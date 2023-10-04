@@ -71,7 +71,6 @@ module.exports = function (RED) {
     });
 
     function prepareNodesAndFlows(configs) {
-        console.log("recarregando");
         flows = {};
         subflows = {};
         nodesInFlow = {}
@@ -99,7 +98,7 @@ module.exports = function (RED) {
 
         let level = loggedNodes[nodeId];
         if (level && level.whatLog) {
-            loggedNodes[nodeId].name = source.node.name; // caso o nome tenha sido trocado depois, ja atualiza
+            loggedNodes[nodeId].name = source.node.name;
             let toLog = {
                 flow: flowOrSubflow,
                 nodeId: nodeId,
@@ -111,9 +110,7 @@ module.exports = function (RED) {
                     toLog.msg = msg;
                     break;
                 case'msg-reqres':
-                    toLog.msg = msg;
-                    delete toLog.msg.req;
-                    delete toLog.msg.res;
+                    toLog.msg = deepClone(msg, ['req', 'res']);
                     break;
                 case  'payload':
                     toLog.msg = msg.payload;
@@ -129,7 +126,6 @@ module.exports = function (RED) {
             }
             console.log(stringify(toLog));
         }
-
     }
 
     RED.events.on('nodes:change', prepareNodesAndFlows);
@@ -165,4 +161,33 @@ module.exports = function (RED) {
                 }));
         }
     });
+
+    //----------------- helper functions -----------------
+    function deepClone(obj, keysToRemove) {
+        // Mapa de referências para lidar com referências circulares
+        const references = new WeakMap();
+        function _clone(value) {
+            if (typeof value !== 'object' || value === null) return value;
+            if (references.has(value)) return references.get(value);
+            let clonedObj;
+            if (Array.isArray(value)) {
+                clonedObj = [];
+                references.set(value, clonedObj);
+                for (let i = 0; i < value.length; i++) {
+                    clonedObj[i] = _clone(value[i]);
+                }
+            } else {
+                clonedObj = {};
+                references.set(value, clonedObj);
+                for (let key in value) {
+                    if (Object.prototype.hasOwnProperty.call(value, key) && !keysToRemove.includes(key)) {
+                        clonedObj[key] = _clone(value[key]);
+                    }
+                }
+            }
+            return clonedObj;
+        }
+        return _clone(obj);
+    }
+
 };
